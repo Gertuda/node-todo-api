@@ -60,7 +60,7 @@ app.get("/todos", authenticate, (req, res) => {
 });
 
 app.get("/todos/:id", authenticate, (req, res) => {
-  var id = req.params.id;
+  const id = req.params.id;
 
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
@@ -83,7 +83,7 @@ app.get("/todos/:id", authenticate, (req, res) => {
 });
 
 app.delete("/todos/:id", authenticate, (req, res) => {
-  var id = req.params.id;
+  const id = req.params.id;
 
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
@@ -106,8 +106,8 @@ app.delete("/todos/:id", authenticate, (req, res) => {
 });
 
 app.post("/users/registration", (req, res) => {
-  var body = _.pick(req.body, ["email", "password"]);
-  var user = new User(body);
+  const body = _.pick(req.body, ["email", "password"]);
+  const user = new User(body);
 
   user
     .save()
@@ -123,7 +123,7 @@ app.post("/users/registration", (req, res) => {
 });
 
 app.post("/users/login", (req, res) => {
-  var body = _.pick(req.body, ["email", "password"]);
+  const body = _.pick(req.body, ["email", "password"]);
 
   User.findByUserdata(body.email, body.password).then(user => {
     return user
@@ -137,7 +137,7 @@ app.post("/users/login", (req, res) => {
   });
 });
 
-app.delete("/users/me/remove", authenticate, (req, res) => {
+app.delete("/users/logout", authenticate, (req, res) => {
   req.user.removeToken(req.token).then(
     () => {
       res.status(200).send();
