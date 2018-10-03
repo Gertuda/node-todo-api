@@ -14,25 +14,34 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
 app.post("/todos", authenticate, (req, res) => {
-  let todos = req.body;
-  let creator = req.user._id;
-  todos.forEach(item => {
-    let todo = new Todo({
-      title: item.title,
-      duration: item.duration,
-      start: item.start,
-      _creator: creator
-    });
-
-    todo.save().then(
-      doc => {
-        res.send(doc);
-      },
-      e => {
-        res.status(400).send(e);
-      }
-    );
+  let todo = new Todo({
+    title: req.body.title,
+    duration: req.body.duration,
+    start: req.body.start,
+    _creator: req.user._id
   });
+
+  todo.save().then(
+    doc => {
+      res.status(200).send(doc);
+    },
+    e => {
+      res.status(400).send(e);
+    }
+  );
+});
+
+app.get("/todos/json", authenticate, (req, res) => {
+  Todo.find({
+    _creator: req.user._id
+  }).then(
+    todos => {
+      res.send(todos.map(item => _.pick(item, ["title", "duration", "start"])));
+    },
+    e => {
+      res.status(404).send(e);
+    }
+  );
 });
 
 app.get("/todos", authenticate, (req, res) => {
