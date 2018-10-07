@@ -2,7 +2,7 @@ const _ = require("lodash");
 const express = require("express");
 const bodyParser = require("body-parser");
 const { ObjectID } = require("mongodb");
-const cors = require('cors')
+const cors = require("cors");
 
 const { mongoose } = require("./db/mongoose");
 const { Todo } = require("./models/todo");
@@ -13,7 +13,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
-app.use(cors())
+app.use(cors());
 
 app.post("/todos", authenticate, (req, res) => {
   let todo = new Todo({
@@ -38,7 +38,16 @@ app.get("/todos/json", authenticate, (req, res) => {
     _creator: req.user._id
   }).then(
     todos => {
-      res.send(todos.map(item => _.pick(item, ["title", "duration", "start"])));
+      res.send(
+        todos.map(item => {
+          const todo = _.pick(item, ["title", "duration", "start"]);
+          const start = todo.start.split(":");
+          const duration = todo.duration.split(":");
+          todo.start = start[0] * 60 + Number(start[1]) - 480;
+          todo.duration = duration[0] * 60 + Number(duration[1]);
+          return todo;
+        })
+      );
     },
     e => {
       res.status(404).send(e);
@@ -115,7 +124,7 @@ app.post("/users/registration", (req, res) => {
       return user.generateAuthToken();
     })
     .then(token => {
-      res.header("x-auth", token).send(user);
+      res.header("authToken", token).send(user);
     })
     .catch(e => {
       res.status(400).send(e);
@@ -123,22 +132,25 @@ app.post("/users/registration", (req, res) => {
 });
 
 app.post("/users/login", (req, res) => {
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
   const body = _.pick(req.body, ["email", "password"]);
 
-  User.findByUserdata(body.email, body.password).then(user => {
-    return user
-      .generateAuthToken()
-      .then(token => {
-        res.header("x-auth", token).send(user);
-      })
-      .catch(e => {
-        res.status(400).send();
+  User.findByUserdata(body.email, body.password)
+    .then(user => {
+      return user.generateAuthToken().then(token => {
+        res.header("authToken", token).send(user);
       });
-  });
+    })
+    .catch(e => {
+      res.status(400).send();
+    });
 });
 
-app.delete("/users/logout", authenticate, (req, res) => {
-  req.user.removeToken(req.token).then(
+app.post("/users/logout", authenticate, (req, res) => {
+  req.user.removeToken(req.token, req.body).then(
     () => {
       res.status(200).send();
     },

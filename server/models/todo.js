@@ -8,11 +8,11 @@ const Todo = mongoose.model("Todo", {
     trim: true
   },
   start: {
-    type: Number,
+    type: String,
     required: true
   },
   duration: {
-    type: Number,
+    type: String,
     required: true
   },
   _creator: {

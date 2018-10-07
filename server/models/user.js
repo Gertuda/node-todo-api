@@ -21,6 +21,17 @@ const UserSchema = new mongoose.Schema({
     require: true,
     minlength: 6
   },
+  inputs: {
+    title: {
+      type: String
+    },
+    start: {
+      type: String
+    },
+    duration: {
+      type: String
+    }
+  },
   tokens: [
     {
       access: {
@@ -39,7 +50,7 @@ UserSchema.methods.toJSON = function() {
   const user = this;
   const userObject = user.toObject();
 
-  return _.pick(userObject, ["_id", "email"]);
+  return _.pick(userObject, ["_id", "email", "inputs"]);
 };
 
 UserSchema.methods.generateAuthToken = function() {
@@ -54,13 +65,14 @@ UserSchema.methods.generateAuthToken = function() {
   return user.save().then(() => token);
 };
 
-UserSchema.methods.removeToken = function(token) {
+UserSchema.methods.removeToken = function(token, inputs) {
   const user = this;
 
   return user.update({
     $pull: {
-      tokens: { token }
-    }
+      tokens: { token },
+    },
+    $set: {inputs}
   });
 };
 
